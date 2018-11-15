@@ -4,6 +4,10 @@ import android.Manifest;
 import android.annotation.TargetApi;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothGatt;
+import android.bluetooth.BluetoothGattCallback;
+import android.bluetooth.BluetoothGattCharacteristic;
+import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
@@ -20,12 +24,22 @@ import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity-app";
+
+    //状态值
+    private static final int BLE_DISCONNECTED = 0;
+    private static final int BLE_CONNECTING = 1;
+    private static final int BLE_CONNECTED = 2;
+
     //蓝牙适配器
     private BluetoothAdapter bluetoothAdapter;
+
     private Toast toast;
 
     //开始扫描打按钮
@@ -37,6 +51,89 @@ public class MainActivity extends AppCompatActivity {
 
     private ScanSettings scanSettings;
 
+    private TextView textView;
+    //保存扫描到的MAC地址
+    private String bleAddress = " ";
+
+    private boolean IsConnected = false;
+
+    private Button connectButton;
+
+    private BluetoothGatt bluetoothGatt;
+    private BluetoothGattCallback callback = new BluetoothGattCallback() {
+        @Override
+        public void onPhyUpdate(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
+            super.onPhyUpdate(gatt, txPhy, rxPhy, status);
+            
+        }
+
+        @Override
+        public void onPhyRead(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
+            super.onPhyRead(gatt, txPhy, rxPhy, status);
+
+        }
+
+        //newState表示当前的连接状态
+
+        @Override
+        public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
+            super.onConnectionStateChange(gatt, status, newState);
+
+        }
+
+        @Override
+        public void onServicesDiscovered(BluetoothGatt gatt, int status) {
+            super.onServicesDiscovered(gatt, status);
+
+        }
+
+        @Override
+        public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            super.onCharacteristicRead(gatt, characteristic, status);
+
+        }
+
+        @Override
+        public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            super.onCharacteristicWrite(gatt, characteristic, status);
+
+        }
+
+        @Override
+        public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            super.onCharacteristicChanged(gatt, characteristic);
+
+        }
+
+        @Override
+        public void onDescriptorRead(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            super.onDescriptorRead(gatt, descriptor, status);
+
+        }
+
+        @Override
+        public void onDescriptorWrite(BluetoothGatt gatt, BluetoothGattDescriptor descriptor, int status) {
+            super.onDescriptorWrite(gatt, descriptor, status);
+        }
+
+        @Override
+        public void onReliableWriteCompleted(BluetoothGatt gatt, int status) {
+            super.onReliableWriteCompleted(gatt, status);
+
+        }
+
+        @Override
+        public void onReadRemoteRssi(BluetoothGatt gatt, int rssi, int status) {
+            super.onReadRemoteRssi(gatt, rssi, status);
+
+        }
+
+        @Override
+        public void onMtuChanged(BluetoothGatt gatt, int mtu, int status) {
+            super.onMtuChanged(gatt, mtu, status);
+
+        }
+    };
 
 
     @Override
@@ -65,6 +162,24 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+
+
+        connectButton = (Button)findViewById(R.id.id_btn_connect);
+
+        connectButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (!IsConnected){
+                    connect();
+                }else {
+                    disconnect();
+                }
+
+
+            }
+        });
+
+        textView = (TextView)findViewById(R.id.id_tv_ble);
 
         Toast.makeText(MainActivity.this, "hello",Toast.LENGTH_SHORT).show();
 
@@ -134,6 +249,28 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private boolean connect(){
+        //传入MAC地址
+        final BluetoothDevice device = bluetoothAdapter.getRemoteDevice(bleAddress);
+        bluetoothGatt = device.connectGatt(MainActivity.this,false,callback);
+
+        if (bluetoothGatt != null){
+            return true;
+        }else {
+            return false;
+        }
+
+
+    }
+
+    private void disconnect(){
+        if (bluetoothGatt != null){
+            bluetoothGatt.disconnect();
+        }
+    }
+
+
+
     @TargetApi(23)
     private void scan(boolean enable){
         Log.d(TAG,"scan");
@@ -146,6 +283,9 @@ public class MainActivity extends AppCompatActivity {
                 //Log.d(TAG,"打印设备名称和MAC地址");
                 Log.d(TAG,"name = " + device.getName() +", address = "+
                         device.getAddress());
+                textView.setText(device.getName()+" - "+device.getAddress());
+                //记录扫描到打地址
+                bleAddress = device.getAddress();
             }
         };
         if (enable){
