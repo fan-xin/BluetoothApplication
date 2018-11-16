@@ -9,6 +9,7 @@ import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
 import android.bluetooth.BluetoothManager;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
 import android.bluetooth.le.ScanCallback;
 import android.bluetooth.le.ScanResult;
@@ -17,6 +18,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
@@ -59,12 +62,36 @@ public class MainActivity extends AppCompatActivity {
 
     private Button connectButton;
 
+    //用于线程间通信的handler
+    private Handler mMainUIHander = new Handler(){
+        @Override
+        public void handleMessage(Message msg) {
+            super.handleMessage(msg);
+            //接收到
+            int newState = msg.what;
+            if (newState == BluetoothProfile.STATE_CONNECTED){
+                IsConnected = true;
+                connectButton.setText("断开");
+                showToast("连接成功！");
+            }else if (newState == BluetoothProfile.STATE_DISCONNECTED){
+                IsConnected = false;
+                connectButton.setText("连接");
+                showToast("设备已经断开");
+            }
+
+
+
+
+
+        }
+    };
+
     private BluetoothGatt bluetoothGatt;
     private BluetoothGattCallback callback = new BluetoothGattCallback() {
         @Override
         public void onPhyUpdate(BluetoothGatt gatt, int txPhy, int rxPhy, int status) {
             super.onPhyUpdate(gatt, txPhy, rxPhy, status);
-            
+
         }
 
         @Override
@@ -74,10 +101,13 @@ public class MainActivity extends AppCompatActivity {
         }
 
         //newState表示当前的连接状态
+        //连接上以后，会触发这个函数打执行
 
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
             super.onConnectionStateChange(gatt, status, newState);
+            //发送新的state
+            mMainUIHander.sendEmptyMessage(newState);
 
         }
 
@@ -141,12 +171,17 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        requestPermissions();
+
 
         startButton = (Button)findViewById(R.id.id_btn_start_scan);
         startButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                Log.d(TAG,"222222222");
+
+                Toast.makeText(MainActivity.this,"connect Button clicked",Toast.LENGTH_SHORT).show();
+
                 Log.d(TAG,"button click");
 
                 if (!mIsScanStart){
@@ -169,6 +204,11 @@ public class MainActivity extends AppCompatActivity {
         connectButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+
+                Log.d(TAG,"111111111");
+
+                Toast.makeText(MainActivity.this,"connect Button clicked",Toast.LENGTH_SHORT).show();
+
                 if (!IsConnected){
                     connect();
                 }else {
@@ -180,6 +220,8 @@ public class MainActivity extends AppCompatActivity {
         });
 
         textView = (TextView)findViewById(R.id.id_tv_ble);
+
+        requestPermissions();
 
         Toast.makeText(MainActivity.this, "hello",Toast.LENGTH_SHORT).show();
 
@@ -218,12 +260,6 @@ public class MainActivity extends AppCompatActivity {
                     .setReportDelay(1000).build();
         }
 
-
-
-
-
-
-
 //        startButton = (Button)findViewById(R.id.id_btn_start_scan);
 //        startButton.setOnClickListener(new View.OnClickListener() {
 //            @Override
@@ -245,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
 //        });
 
 
-        scan(true);
+        //scan(true);
 
     }
 
@@ -333,19 +369,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void onclick(View view) {
-        scan(true);
-        Log.d(TAG,"onClick ");
-        if (!mIsScanStart){
-            //如果还没开始扫描，则开始扫描
-            startButton.setText("Stop Scan");
-            mIsScanStart = true;
-            scan(true);
-        }else {
-            startButton.setText("Start Scan");
-            mIsScanStart = false;
-            scan(false);
-        }
-
-    }
+//    public void onclick(View view) {
+//        scan(true);
+//        Log.d(TAG,"onClick ");
+//        if (!mIsScanStart){
+//            //如果还没开始扫描，则开始扫描
+//            startButton.setText("Stop Scan");
+//            mIsScanStart = true;
+//            scan(true);
+//        }else {
+//            startButton.setText("Start Scan");
+//            mIsScanStart = false;
+//            scan(false);
+//        }
+//
+//    }
 }

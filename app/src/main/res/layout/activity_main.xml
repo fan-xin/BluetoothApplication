@@ -5,6 +5,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_gravity="center_horizontal"
     tools:context=".MainActivity">
 
     <TextView
@@ -18,15 +19,14 @@
         android:id="@+id/id_btn_start_scan"
         android:text="Start Scan"
         android:layout_alignParentBottom="true"
-        android:onClick="onclick"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
     <Button
         android:id="@+id/id_btn_connect"
         android:layout_above="@id/id_btn_start_scan"
         android:text="Connect"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
 
