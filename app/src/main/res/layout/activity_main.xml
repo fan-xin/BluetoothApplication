@@ -29,5 +29,12 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <Button
+        android:id="@+id/id_btn_discovery"
+        android:text="搜寻服务"
+        android:layout_above="@id/id_btn_connect"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
 
 </RelativeLayout>

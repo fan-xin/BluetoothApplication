@@ -8,6 +8,7 @@ import android.bluetooth.BluetoothGatt;
 import android.bluetooth.BluetoothGattCallback;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattDescriptor;
+import android.bluetooth.BluetoothGattService;
 import android.bluetooth.BluetoothManager;
 import android.bluetooth.BluetoothProfile;
 import android.bluetooth.le.BluetoothLeScanner;
@@ -17,6 +18,7 @@ import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.icu.util.LocaleData;
 import android.os.Build;
 import android.os.Handler;
 import android.os.Message;
@@ -31,6 +33,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import org.w3c.dom.Text;
+
+import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity-app";
@@ -62,6 +66,8 @@ public class MainActivity extends AppCompatActivity {
 
     private Button connectButton;
 
+    private Button discoveryButton;
+
     //用于线程间通信的handler
     private Handler mMainUIHander = new Handler(){
         @Override
@@ -78,11 +84,6 @@ public class MainActivity extends AppCompatActivity {
                 connectButton.setText("连接");
                 showToast("设备已经断开");
             }
-
-
-
-
-
         }
     };
 
@@ -114,6 +115,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
             super.onServicesDiscovered(gatt, status);
+            Log.d(TAG,"in onServicesDiscovered");
+            discoverGattService(gatt.getServices());
+            //gatt.getServices();
 
         }
 
@@ -165,6 +169,25 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private void discoverGattService(List<BluetoothGattService> services){
+        if (services == null)
+            return;
+        //传入列表list，在函数中遍历
+        for (BluetoothGattService service: services){
+            String uuid = service.getUuid().toString();
+            Log.d(TAG,"Service uuid = "+uuid);
+            List<BluetoothGattCharacteristic> characteristics
+                    = service.getCharacteristics();
+
+            for (BluetoothGattCharacteristic characteristic: characteristics){
+                String char_uuid = characteristic.getUuid().toString();
+                Log.d(TAG,"BluetoothGattCharacteristic uuid "+char_uuid);
+            }
+
+        }
+
+    }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -215,6 +238,19 @@ public class MainActivity extends AppCompatActivity {
                     disconnect();
                 }
 
+
+            }
+        });
+
+        discoveryButton = (Button)findViewById(R.id.id_btn_discovery);
+        discoveryButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //搜寻服务
+                if (bluetoothGatt!=null){
+                    bluetoothGatt.discoverServices();
+                    //会返回到onServiceDiscovered函数
+                }
 
             }
         });
