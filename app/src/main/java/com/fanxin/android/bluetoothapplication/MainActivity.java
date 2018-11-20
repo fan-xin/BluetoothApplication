@@ -70,9 +70,18 @@ public class MainActivity extends AppCompatActivity {
     private Button discoveryButton;
 
     private BluetoothGattCharacteristic mSimpleKeyChar;
-
+    //定义UUID
     private final String SIMPLE_KEY_UUID = "0000";
     private final String CLIENT_CONFIG = "0000";
+
+    //定义特征值
+    private BluetoothGattCharacteristic mTempConfigChar;
+    private BluetoothGattCharacteristic mTemChar;
+
+
+    private Button mEnableTempButton;
+    private Button mReadTempButton;
+
 
     //用于线程间通信的handler
     private Handler mMainUIHander = new Handler(){
@@ -139,13 +148,19 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
+        //当特征值
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
             Log.d(TAG,"onCharacteristicChanged");
             //读取按键的状态
-            
+            byte[] data = characteristic.getValue();
+            String value = "";
+            for (int i = 0; i < data.length; i++) {
+                value += String.format("%02x",data[i]);
 
+            }
+            Log.d(TAG,"value = "+value);
         }
 
         @Override
@@ -196,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
                     Log.d(TAG,"find simple key characteristic");
                     //保存特征值
                     mSimpleKeyChar = characteristic;
-                    //
+                    //打开通知功能
                     bluetoothGatt.setCharacteristicNotification(mSimpleKeyChar,true);
                     BluetoothGattDescriptor descriptor =
                             mSimpleKeyChar.getDescriptor(UUID.fromString(CLIENT_CONFIG));
@@ -205,6 +220,14 @@ public class MainActivity extends AppCompatActivity {
                     bluetoothGatt.writeDescriptor(descriptor);
                     Log.d(TAG,"enable");
 
+                }else if (char_uuid.equals(IR_TEMPERATURE_CONFIG)){
+                    //搜寻温度传感器
+                    mTempConfigChar = characteristic;
+                    Log.d(TAG,"find temperature sensor");
+
+                }else if (char_uuid.equals(IR_TEMPERATURE_UUID)){
+                    mTemChar = characteristic;
+                    Log.d(TAG,"find temperature sensor");
                 }
             }
 
@@ -218,6 +241,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        mEnableTempButton = (Button)findViewById(R.id.id_btn_bt_enable);
+
+        mEnableTempButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
+
+        mReadTempButton = (Button)findViewById(R.id.id_btn_bt_read);
+
+        mReadTempButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+            }
+        });
 
 
         startButton = (Button)findViewById(R.id.id_btn_start_scan);

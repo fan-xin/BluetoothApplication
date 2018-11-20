@@ -36,5 +36,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
+    <Button
+        android:id="@+id/id_btn_bt_enable"
+        android:text="打开温度传感器"
+        android:layout_above="@id/id_btn_discovery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
+    <Button
+        android:id="@+id/id_btn_bt_read"
+        android:text="读取温度传感器"
+        android:layout_above="@id/id_btn_bt_enable"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
+
 
 </RelativeLayout>
