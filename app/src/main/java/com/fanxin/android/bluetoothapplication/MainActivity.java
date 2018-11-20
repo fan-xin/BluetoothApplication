@@ -35,6 +35,7 @@ import android.widget.Toast;
 import org.w3c.dom.Text;
 
 import java.util.List;
+import java.util.UUID;
 
 public class MainActivity extends AppCompatActivity {
     private static final String TAG = "MainActivity-app";
@@ -67,6 +68,11 @@ public class MainActivity extends AppCompatActivity {
     private Button connectButton;
 
     private Button discoveryButton;
+
+    private BluetoothGattCharacteristic mSimpleKeyChar;
+
+    private final String SIMPLE_KEY_UUID = "0000";
+    private final String CLIENT_CONFIG = "0000";
 
     //用于线程间通信的handler
     private Handler mMainUIHander = new Handler(){
@@ -136,6 +142,9 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
             super.onCharacteristicChanged(gatt, characteristic);
+            Log.d(TAG,"onCharacteristicChanged");
+            //读取按键的状态
+            
 
         }
 
@@ -182,6 +191,21 @@ public class MainActivity extends AppCompatActivity {
             for (BluetoothGattCharacteristic characteristic: characteristics){
                 String char_uuid = characteristic.getUuid().toString();
                 Log.d(TAG,"BluetoothGattCharacteristic uuid "+char_uuid);
+                //根据uuid匹配要的service
+                if (char_uuid.equals(SIMPLE_KEY_UUID)){
+                    Log.d(TAG,"find simple key characteristic");
+                    //保存特征值
+                    mSimpleKeyChar = characteristic;
+                    //
+                    bluetoothGatt.setCharacteristicNotification(mSimpleKeyChar,true);
+                    BluetoothGattDescriptor descriptor =
+                            mSimpleKeyChar.getDescriptor(UUID.fromString(CLIENT_CONFIG));
+                    //写入数据
+                    descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
+                    bluetoothGatt.writeDescriptor(descriptor);
+                    Log.d(TAG,"enable");
+
+                }
             }
 
         }
