@@ -134,17 +134,29 @@ public class MainActivity extends AppCompatActivity {
             discoverGattService(gatt.getServices());
             //gatt.getServices();
 
+
         }
 
+        //读取特征值
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicRead(gatt, characteristic, status);
+            Log.d(TAG,"onCharacteristicRead");
+            byte[] data = characteristic.getValue();
+            String value = "";
+            for (int i = 0; i < data.length; i++) {
+                value += String.format("%02x ", data[i]);
+            }
+            Log.d(TAG,"从传感器获取到的数值 value = "+value);
+
 
         }
 
+        //写入特征值
         @Override
         public void onCharacteristicWrite(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
             super.onCharacteristicWrite(gatt, characteristic, status);
+            Log.d(TAG,"onCharacteristicWrite");
 
         }
 
@@ -192,6 +204,8 @@ public class MainActivity extends AppCompatActivity {
 
         }
     };
+    private final String IR_TEMPERATURE_CONFIG ="00aa01";
+    private final String IR_TEMPERATURE_UUID ="00aa02";
 
     private void discoverGattService(List<BluetoothGattService> services){
         if (services == null)
@@ -223,7 +237,7 @@ public class MainActivity extends AppCompatActivity {
                 }else if (char_uuid.equals(IR_TEMPERATURE_CONFIG)){
                     //搜寻温度传感器
                     mTempConfigChar = characteristic;
-                    Log.d(TAG,"find temperature sensor");
+                    Log.d(TAG,"find temperature config char");
 
                 }else if (char_uuid.equals(IR_TEMPERATURE_UUID)){
                     mTemChar = characteristic;
@@ -246,7 +260,10 @@ public class MainActivity extends AppCompatActivity {
         mEnableTempButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
+                Log.d(TAG,"enable temperture sensor");
+                //打开温度传感器，将01写入传感器
+                mTempConfigChar.setValue(new byte[] {0x01});
+                bluetoothGatt.writeCharacteristic(mTempConfigChar);
             }
         });
 
@@ -255,6 +272,10 @@ public class MainActivity extends AppCompatActivity {
         mReadTempButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d(TAG,"read temperature sensor");
+                //读取传感器
+                bluetoothGatt.readCharacteristic(mTemChar);
+
 
             }
         });
